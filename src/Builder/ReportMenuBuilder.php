@@ -30,7 +30,7 @@ class ReportMenuBuilder implements ReportMenuBuilderInterface
             if (!empty($roles)) {
                 $hasAccess = false;
                 foreach ($roles as $role) {
-                    if ($this->security->isGranted($role)) {
+                    if (in_array($role, $this->security->getUser()->getRoles())) {
                         $hasAccess = true;
                         break;
                     }
