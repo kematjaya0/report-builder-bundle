@@ -1,0 +1,15 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Kematjaya\ReportBuilderBundle\Builder\ReportMenuBuilderInterface:
+        class: Kematjaya\ReportBuilderBundle\Builder\ReportMenuBuilder
+
+    Kematjaya\ReportBuilderBundle\Manager\ReportBuilderManagerInterface:
+        class: Kematjaya\ReportBuilderBundle\Manager\ReportBuilderManager
+
+    Kematjaya\ReportBuilderBundle\Twig\ReportMenuExtension:
+        autowire: true
+        autoconfigure: true

@@ -1,0 +1,16 @@
+<?php
+
+namespace Kematjaya\ReportBuilderBundle\DependencyInjection;
+
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+
+class Configuration implements ConfigurationInterface
+{
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('report_builder');
+
+        return $treeBuilder;
+    }
+}

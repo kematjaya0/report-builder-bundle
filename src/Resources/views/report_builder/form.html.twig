@@ -1,0 +1,356 @@
+{% extends 'backend/base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/codemirror.min.css") }}"/>
+    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/monokai.min.css") }}"/>
+    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/query_builder.css") }}"/>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-3">
+    <!-- Breadcrumb -->
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6">
+                <h3>{{ is_edit ? 'Edit Report: ' ~ report_query.name : 'Create Report' }}</h3>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('dashboard_index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('report_builder_index') }}">Report Builder</a></li>
+                    <li class="breadcrumb-item active">{{ is_edit ? 'Edit' : 'Buat Baru' }}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form, {attr: {id: 'reportForm', novalidate: 'novalidate'}}) }}
+    <div class="form-layout shadow-sm rounded-3 overflow-hidden mb-4">
+        <!-- DB Explorer (Kiri) -->
+        <div class="db-explorer">
+            <div class="db-explorer-header">
+                <i class="fa fa-database me-2"></i> Database Explorer
+            </div>
+            <input type="text" class="db-search-box" id="dbSearch" placeholder="🔍 Cari tabel...">
+            <div id="db-tree">
+                <div class="db-loader"><i class="fa fa-spinner fa-spin me-1"></i> loading structure...</div>
+            </div>
+        </div>
+
+        <!-- Editor Area (Kanan) -->
+        <div class="editor-area">
+            <!-- Toolbar -->
+            <div class="editor-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-dot" id="statusDot"></span>
+                    <small id="statusText" class="text-muted">Ready</small>
+                </div>
+
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-run btn-sm btnPreview">
+                        <i class="fa fa-play me-1"></i> Run Preview
+                    </button>
+                    <button type="button" class="btn btn-save btn-sm" onclick="document.getElementById('reportForm').submit()">
+                        <i class="fa fa-save me-1"></i> Save Query
+                    </button>
+                    <a href="{{ path("report_builder_index") }}" class="btn btn-sm btn-primary-gradien">
+                        <i class="fa fa-history me-1"></i> Back
+                    </a>
+                </div>
+            </div>
+
+            <!-- SQL Editor -->
+            <div class="editor-wrapper" style="height:200px; border-bottom: 1px solid #eee">
+                {{ form_widget(form.sqlQuery) }}
+            </div>
+            <div class="alert alert-outline-info" style="margin-bottom: 1em">use double brace to use parameter, example: <code>{{ "{{tahun}}" }}</code>.</div>
+            <!-- Konfigurasi Metadata -->
+            <div class="meta-section">
+                <h6><i class="fa fa-cog me-2 text-primary"></i>Configuration</h6>
+                <div class="row g-2">
+                    <div class="col-md-6">{{ form_row(form.name) }}</div>
+                    <div class="col-md-6">{{ form_row(form.outputType) }}</div>
+                    <div class="col-md-6 chartColumn">{{ form_row(form.chartXColumn) }}</div>
+                    <div class="col-md-6 chartColumn">{{ form_row(form.chartYColumn) }}</div>
+                    <div class="col-md-6">{{ form_row(form.description) }}</div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Parameter Query (JSON) <small class="text-muted">— opsional</small></label>
+                        {{ form_widget(form.queryParams) }}
+                        <small class="text-muted">Contoh: <code>[{"name":"tahun","label":"Tahun","type":"integer","default":2024}]</code> lalu gunakan <code>{{ "{{" }} tahun {{ "}}" }}</code> di SQL.</small>
+                    </div>
+                    <div class="col-md-6">{{ form_row(form.icon) }}</div>
+                    <div class="col-md-6">{{ form_row(form.roles) }}</div>
+                    <div class="col-md-6">
+                        <div class="pt-3">{{ form_row(form.isEnabled) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="status-dot" id="statusDot"></span>
+                    <small id="statusText" class="text-muted">Ready</small>
+                </div>
+
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-run btn-sm btnPreview">
+                        <i class="fa fa-play me-1"></i> Run Preview
+                    </button>
+                    <button type="button" class="btn btn-save btn-sm" onclick="document.getElementById('reportForm').submit()">
+                        <i class="fa fa-save me-1"></i> Save Query
+                    </button>
+                    <a href="{{ path("report_builder_index") }}" class="btn btn-sm btn-primary-gradien">
+                        <i class="fa fa-history me-1"></i> Back
+                    </a>
+                </div>
+            </div>
+            <!-- Preview Toolbar -->
+            <div class="preview-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted fw-semibold">📊 Preview</small>
+                    <span id="previewCount" class="badge bg-secondary" style="display:none"></span>
+                </div>
+                <div id="columnBadges" class="d-flex flex-wrap gap-1"></div>
+            </div>
+
+            <!-- Preview Content -->
+            <div class="preview-section" id="previewSection">
+                <div class="text-center text-muted py-5">
+                    <i class="fa fa-table fa-3x mb-3 d-block" style="opacity:0.2"></i>
+                    <p>write SQL Query, then <strong>Run Preview</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset("bundles/reportbuilder/js/codemirror.min.js") }}"></script>
+<script src="{{ asset("bundles/reportbuilder/js/sql.min.js") }}"></script>
+<script src="{{ asset("bundles/reportbuilder/js/show-hint.min.js") }}"></script>
+<script src="{{ asset("bundles/reportbuilder/js/sql-hint.min.js") }}"></script>
+<link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/show-hint.min.css") }}">
+<script src="{{ asset('bundles/reportbuilder/js/echarts.min.js') }}"></script>
+<script>
+
+    function selectOutput() {
+        const outputType = document.getElementById('report_query_outputType').value;
+        let chartColumns = document.getElementsByClassName('chartColumn');
+        if ('table' === outputType) {
+            chartColumns.forEach(c => c.style.display = 'none');
+            return;
+        }
+
+        chartColumns.forEach(c => c.style.display = '');
+    }
+
+$(function() {
+    // ===== CodeMirror SQL Editor =====
+    const textarea = document.getElementById('{{ form.sqlQuery.vars.id }}');
+    if (!textarea) {
+        console.error("Critical: SQL Editor textarea not found!");
+        return;
+    }
+
+    selectOutput();
+    // Function declarations are hoisted, making them available here
+    window.editor = CodeMirror.fromTextArea(textarea, {
+        mode: 'text/x-sql',
+        theme: 'monokai',
+        lineNumbers: true,
+        autofocus: true,
+        extraKeys: {
+            'Ctrl-Space': 'autocomplete',
+            'Ctrl-Enter': runPreview
+        },
+        lineWrapping: true,
+    });
+    window.editor.setSize('100%', '200px');
+
+    // Sync editor ke textarea sebelum submit
+    document.getElementById('reportForm').addEventListener('submit', function() {
+        window.editor.save();
+    });
+
+    // ===== Database Explorer =====
+    let dbStructure = [];
+    console.log("Fetching DB Structure from:", '{{ path('report_builder_db_structure') }}');
+    fetch('{{ path('report_builder_db_structure') }}')
+        .then(r => {
+            if (!r.ok) throw new Error('HTTP error ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            console.log("DB Structure data received:", data);
+            dbStructure = data.tables || [];
+            renderDbTree(dbStructure);
+        })
+        .catch((err) => {
+            console.error("Failed to load DB Structure:", err);
+            document.getElementById('db-tree').innerHTML = '<div class="db-loader text-danger">Failed load database structure: ' + err.message + '</div>';
+        });
+
+    function renderDbTree(tables) {
+        const tree = document.getElementById('db-tree');
+        if (!tree) return;
+        if (!tables.length) {
+            tree.innerHTML = '<div class="db-loader">table not found.</div>';
+            return;
+        }
+        tree.innerHTML = tables.map(table => `
+            <div class="table-item" data-table="${table.name}">
+                <div class="table-item-header" onclick="toggleTable(this)">
+                    <i class="fa fa-chevron-right toggle-icon"></i>
+                    <i class="fa ${table.table_type === 'VIEW' ? 'fa-eye' : 'fa-table'}" style="color:${table.table_type === 'VIEW' ? '#ff9800' : '#81c784'};font-size:12px"></i>
+                    <span>${table.name}</span>
+                    <small style="color:#455a64;margin-left:auto">${table.columns.length}</small>
+                </div>
+                <div class="column-list">
+                    ${table.columns.map(col => `
+                        <div class="column-item" onclick="insertColumn('${table.name}', '${col.name}', this)" title="Klik untuk insert ke editor">
+                            <span>${col.name}</span>
+                            <div>
+                                <span class="column-type">${col.type}</span>
+                                <span class="insert-btn ms-1">↵</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleTable(header) {
+        const item = header.closest('.table-item');
+        item.classList.toggle('open');
+    }
+
+    function insertColumn(table, column, el) {
+        if (!window.editor) return;
+        const cursor = window.editor.getCursor();
+        window.editor.replaceRange(column, cursor);
+        window.editor.focus();
+    }
+
+    // ===== Search DB =====
+    const dbSearch = document.getElementById('dbSearch');
+    if (dbSearch) {
+        dbSearch.addEventListener('input', function() {
+            const kw = this.value.toLowerCase();
+            const filtered = dbStructure.filter(t => t.name.toLowerCase().includes(kw));
+            renderDbTree(filtered);
+        });
+    }
+
+    // ===== Preview =====
+    let previewChart = null;
+
+    function runPreview() {
+        if (!window.editor) return;
+        const sql = window.editor.getValue();
+        const params = document.getElementById('{{ form.queryParams.vars.id }}')?.value || '[]';
+
+        updateStatus('run', 'Run query...');
+        document.getElementById('previewSection').innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-2x text-primary"></i><br><small class="text-muted mt-2">processed...</small></div>';
+
+        fetch('{{ path('report_builder_preview') }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+            body: new URLSearchParams({sql: sql, params: params})
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('previewSection').style = "min-height: 20rem";
+            if (!data.success) {
+                updateStatus('err', 'Error');
+                document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3"><i class="fa fa-exclamation-triangle me-2"></i>${data.message}</div>`;
+                return;
+            }
+            updateStatus('ok', `${data.total} baris`);
+            document.getElementById('previewCount').style.display = 'inline';
+            document.getElementById('previewCount').textContent = data.total + ' baris';
+
+            // Render column badges
+            document.getElementById('columnBadges').innerHTML = data.columns.map(col =>
+                `<span class="column-badge" onclick="fillColumn('${col}')"><i class="fa fa-columns"></i>${col}</span>`
+            ).join('');
+
+            renderPreview(data.columns, data.data);
+        })
+        .catch(err => {
+            updateStatus('err', 'Failed');
+            document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3">Connection error: ${err.message}</div>`;
+        });
+    }
+
+    function fillColumn(colName) {
+        const xInput = document.getElementById('{{ form.chartXColumn.vars.id }}');
+        const yInput = document.getElementById('{{ form.chartYColumn.vars.id }}');
+        if (xInput && !xInput.value) { xInput.value = colName; return; }
+        if (yInput && !yInput.value) { yInput.value = colName; return; }
+    }
+
+    function renderPreview(columns, data) {
+        const outputType = document.getElementById('{{ form.outputType.vars.id }}').value;
+        let html = '';
+
+        if (outputType === 'table' || !outputType) {
+            html = `<div class="preview-table-wrap"><table class="table table-sm table-hover preview-table">
+                <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                <tbody>${data.slice(0, 50).map(row =>
+                    `<tr>${columns.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`
+                ).join('')}</tbody>
+            </table></div>`;
+            if (data.length > 50) html += `<small class="text-muted ms-2">Show 50 from ${data.length} row</small>`;
+            document.getElementById('previewSection').innerHTML = html;
+        } else {
+            html = `<div id="preview-chart"></div>`;
+            document.getElementById('previewSection').innerHTML = html;
+            const xCol = document.getElementById('{{ form.chartXColumn.vars.id }}').value || columns[0];
+            const yCol = document.getElementById('{{ form.chartYColumn.vars.id }}').value || columns[1];
+            const xData = data.map(r => r[xCol]);
+            const yData = data.map(r => parseFloat(r[yCol] || 0));
+            if (previewChart) previewChart.dispose();
+            previewChart = echarts.init(document.getElementById('preview-chart'));
+            previewChart.setOption(buildChartOption(outputType, xData, yData, yCol));
+        }
+    }
+
+    function buildChartOption(type, xData, yData, yLabel) {
+        if (type === 'pie') {
+            return {
+                tooltip: { trigger: 'item' },
+                series: [{ type: 'pie', radius: ['40%','70%'], data: xData.map((x,i) => ({name:x, value:yData[i]})) }]
+            };
+        }
+        return {
+            tooltip: { trigger: 'axis' },
+            xAxis: { type: 'category', data: xData, axisLabel: { rotate: 30 } },
+            yAxis: { type: 'value' },
+            series: [{ type: type, data: yData, name: yLabel, smooth: true }]
+        };
+    }
+
+    function updateStatus(state, text) {
+        const dot = document.getElementById('statusDot');
+        if (dot) dot.className = 'status-dot status-' + state;
+        const statusText = document.getElementById('statusText');
+        if (statusText) statusText.textContent = text;
+    }
+
+    // Assign to window for global access (onclick in HTML)
+    window.runPreview = runPreview;
+    window.toggleTable = toggleTable;
+    window.insertColumn = insertColumn;
+    window.fillColumn = fillColumn;
+
+    const btnPreviews = document.getElementsByClassName('btnPreview');
+    btnPreviews.forEach(btn => btn.addEventListener('click', runPreview));
+    // Auto-resize preview chart on window resize
+    window.addEventListener('resize', () => { if (previewChart) previewChart.resize(); });
+});
+</script>
+{% endblock %}

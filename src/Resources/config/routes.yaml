@@ -1,0 +1,4 @@
+report_builder:
+    resource: '../../src/Controller/'
+    type: attribute
+    prefix: '/'
