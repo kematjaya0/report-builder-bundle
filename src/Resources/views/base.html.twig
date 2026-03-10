@@ -1,12 +1,22 @@
 <html>
 <head>
     <title>Report Builder Bundle</title>
+    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/bootstrap-5.css") }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset("bundles/reportbuilder/css/font-awesome.css") }}"/>
     {% block stylesheets %}
-        {{ parent() }}
     {% endblock %}
 </head>
 <body>
-{% block body %}{% endblock %}
+<div class="container" style="margin-top: 2em">
+    <div class="card">
+        <div class="card-body">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset("bundles/reportbuilder/js/bootstrap/bootstrap.bundle.min.js") }}"></script>
+<script src="{{ asset("bundles/reportbuilder/js/jquery-3.6.0.min.js") }}"></script>
 {% block javascripts %}{% endblock %}
 </body>
 </html>

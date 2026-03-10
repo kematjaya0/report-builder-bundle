@@ -1,96 +1,94 @@
 {% extends '@ReportBuilder/base.html.twig' %}
-
 {% block stylesheets %}
     {{ parent() }}
     {{ render_report_builder_css() }}
 {% endblock %}
-
 {% block body %}
-<div class="container-fluid">
-    <!-- Breadcrumb -->
-    <div class="page-title">
-        <div class="row">
-            <div class="col-sm-6"><h3>Report Builder</h3></div>
+    <div class="container-fluid">
+        <!-- Breadcrumb -->
+        <div class="page-title">
+            <div class="row">
+                <div class="col-sm-6"><h3>Report Builder</h3></div>
+            </div>
         </div>
-    </div>
 
-    <!-- Statistik Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="stat-card stat-total">
-                <div class="stat-icon"><i class="fa fa-database"></i></div>
-                <div class="stat-number">{{ queries|length }}</div>
-                <div class="stat-label">Total Reports</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card stat-active">
-                <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
-                <div class="stat-number">{{ total_enabled }}</div>
-                <div class="stat-label">Active Reports</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card stat-inactive">
-                <div class="stat-icon"><i class="fa fa-pause-circle"></i></div>
-                <div class="stat-number">{{ total_disabled }}</div>
-                <div class="stat-label">Disabled Reports</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Card Utama -->
-    <div class="card shadow-sm border-0" style="border-radius:16px">
-        <div class="card-header border-0 pt-4 pb-0" style="background:transparent">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div>
-                    <h5 class="mb-1 fw-bold"><i class="fa fa-bar-chart text-primary me-2"></i>List Reports</h5>
+        <!-- Statistik Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card stat-total">
+                    <div class="stat-icon"><i class="fa fa-database"></i></div>
+                    <div class="stat-number">{{ queries|length }}</div>
+                    <div class="stat-label">Total Reports</div>
                 </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <input type="text" id="searchInput" class="search-box form-control" placeholder="🔍 Search report..." style="width:220px">
-                    <a href="{{ path('report_builder_new') }}" class="btn btn-create">
-                        <i class="fa fa-plus me-1"></i> Create Report
-                    </a>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card stat-active">
+                    <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
+                    <div class="stat-number">{{ total_enabled }}</div>
+                    <div class="stat-label">Active Reports</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card stat-inactive">
+                    <div class="stat-icon"><i class="fa fa-pause-circle"></i></div>
+                    <div class="stat-number">{{ total_disabled }}</div>
+                    <div class="stat-label">Disabled Reports</div>
                 </div>
             </div>
         </div>
-        <div class="card-body pt-3">
-            {% if queries|length > 0 %}
-            <div class="table-responsive">
-                <table class="table table-rbuilder w-100" id="reportTable">
-                    <thead>
-                        <tr>
-                            <th width="40">#</th>
-                            <th>Name</th>
-                            <th>SQL Query</th>
-                            <th>Output</th>
-                            <th>Status</th>
-                            <th>Created At</th>
-                            <th width="160" class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        {% for i, query in queries %}
-                        <tr data-name="{{ query.name|lower }}">
-                            <td class="text-muted fw-bold">{{ i + 1 }}</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                         style="width:36px;height:36px;background:var(--gradient-primary)">
-                                        <i class="{{ query.icon }} text-white" style="font-size:14px"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold">{{ query.name }}</div>
-                                        {% if query.description %}
-                                            <small class="text-muted">{{ query.description }}</small>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="word-break: break-word;">
-                                <code class="query-preview" style="white-space: pre-wrap;">{{ query.sqlQuery }}</code>
-                            </td>
-                            <td>
+
+        <!-- Card Utama -->
+        <div class="card shadow-sm border-0" style="border-radius:16px">
+            <div class="card-header border-0 pt-4 pb-0" style="background:transparent">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <h5 class="mb-1 fw-bold"><i class="fa fa-bar-chart text-primary me-2"></i>List Reports</h5>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="text" id="searchInput" class="search-box form-control" placeholder="🔍 Search report..." style="width:220px">
+                        <a href="{{ path('report_builder_new') }}" class="btn btn-create">
+                            <i class="fa fa-plus me-1"></i> Create Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body pt-3">
+                {% if queries|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-rbuilder w-100" id="reportTable">
+                            <thead>
+                            <tr>
+                                <th width="40">#</th>
+                                <th>Name</th>
+                                <th>SQL Query</th>
+                                <th>Output</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th width="160" class="text-center">Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                            {% for i, query in queries %}
+                                <tr data-name="{{ query.name|lower }}">
+                                    <td class="text-muted fw-bold">{{ i + 1 }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                 style="width:36px;height:36px;background:var(--gradient-primary)">
+                                                <i class="{{ query.icon }} text-white" style="font-size:14px"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">{{ query.name }}</div>
+                                                {% if query.description %}
+                                                    <small class="text-muted">{{ query.description }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="word-break: break-word;">
+                                        <code class="query-preview" style="white-space: pre-wrap;">{{ query.sqlQuery }}</code>
+                                    </td>
+                                    <td>
                                 <span class="badge-output badge-{{ query.outputType }}">
                                     {% if query.outputType == 'table' %}📋 Tabel
                                     {% elseif query.outputType == 'bar' %}📊 Bar
@@ -99,64 +97,64 @@
                                     {% elseif query.outputType == 'scatter' %}💠 Scatter
                                     {% endif %}
                                 </span>
-                            </td>
-                            <td>
-                                {% if query.isEnabled %}
-                                    <span class="badge bg-success"><i class="fa fa-check me-1"></i>Active</span>
-                                {% else %}
-                                    <span class="badge bg-secondary"><i class="fa fa-pause me-1"></i>Disabled</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small class="text-muted">{{ query.createdAt ? query.createdAt|date('d/m/Y') : '-' }}</small>
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ path('report_builder_view', {slug: query.slug}) }}"
-                                       class="action-btn bg-info text-white" title="View" target="_blank">
-                                        <i class="fa fa-eye"></i>
-                                    </a>
-                                    <a href="{{ path('report_builder_edit', {id: query.id}) }}"
-                                       class="action-btn bg-warning text-dark" title="Edit">
-                                        <i class="fa fa-pencil"></i>
-                                    </a>
-                                    <form method="post" action="{{ path('report_builder_delete', {id: query.id}) }}"
-                                          onsubmit="return confirm('Yakin hapus laporan ini?')" style="display:inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ query.id) }}">
-                                        <button type="submit" class="action-btn bg-danger text-white" title="Delete">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td>
+                                        {% if query.isEnabled %}
+                                            <span class="badge bg-success"><i class="fa fa-check me-1"></i>Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary"><i class="fa fa-pause me-1"></i>Disabled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ query.createdAt ? query.createdAt|date('d/m/Y') : '-' }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <a href="{{ path('report_builder_view', {slug: query.slug}) }}"
+                                               class="action-btn bg-info text-white" title="View" target="_blank">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('report_builder_edit', {id: query.id}) }}"
+                                               class="action-btn bg-warning text-dark" title="Edit">
+                                                <i class="fa fa-pencil"></i>
+                                            </a>
+                                            <form method="post" action="{{ path('report_builder_delete', {id: query.id}) }}"
+                                                  onsubmit="return confirm('Yakin hapus laporan ini?')" style="display:inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ query.id) }}">
+                                                <button type="submit" class="action-btn bg-danger text-white" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fa fa-database mb-3 d-block"></i>
+                        <p class="text-muted">Write SQL Query for custom report.</p>
+                        <a href="{{ path('report_builder_new') }}" class="btn btn-create mt-2">
+                            <i class="fa fa-plus me-1"></i> Create Report
+                        </a>
+                    </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="empty-state">
-                <i class="fa fa-database mb-3 d-block"></i>
-                <p class="text-muted">Write SQL Query for custom report.</p>
-                <a href="{{ path('report_builder_new') }}" class="btn btn-create mt-2">
-                    <i class="fa fa-plus me-1"></i> Create Report
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
-</div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script>
-    document.getElementById('searchInput').addEventListener('input', function() {
-        const keyword = this.value.toLowerCase();
-        document.querySelectorAll('#tableBody tr').forEach(function(row) {
-            const name = row.getAttribute('data-name') || '';
-            row.style.display = name.includes(keyword) ? '' : 'none';
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const keyword = this.value.toLowerCase();
+            document.querySelectorAll('#tableBody tr').forEach(function(row) {
+                const name = row.getAttribute('data-name') || '';
+                row.style.display = name.includes(keyword) ? '' : 'none';
+            });
         });
-    });
     </script>
 {% endblock %}
