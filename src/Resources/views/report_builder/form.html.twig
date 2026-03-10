@@ -1,10 +1,8 @@
-{% extends 'backend/base.html.twig' %}
+{% extends '@ReportBuilder/base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/codemirror.min.css") }}"/>
-    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/monokai.min.css") }}"/>
-    <link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/query_builder.css") }}"/>
+    {{ render_report_builder_css() }}
 {% endblock %}
 
 {% block body %}
@@ -127,13 +125,9 @@
 {% endblock %}
 
 {% block javascripts %}
-{{ parent() }}
-<script src="{{ asset("bundles/reportbuilder/js/codemirror.min.js") }}"></script>
-<script src="{{ asset("bundles/reportbuilder/js/sql.min.js") }}"></script>
-<script src="{{ asset("bundles/reportbuilder/js/show-hint.min.js") }}"></script>
-<script src="{{ asset("bundles/reportbuilder/js/sql-hint.min.js") }}"></script>
-<link rel="stylesheet" href="{{ asset("bundles/reportbuilder/css/show-hint.min.css") }}">
-<script src="{{ asset('bundles/reportbuilder/js/echarts.min.js') }}"></script>
+    {{ parent() }}
+    {{ render_report_builder_js() }}
+    {{ render_chart_js() }}
 <script>
 
     function selectOutput() {
@@ -147,210 +141,210 @@
         chartColumns.forEach(c => c.style.display = '');
     }
 
-$(function() {
-    // ===== CodeMirror SQL Editor =====
-    const textarea = document.getElementById('{{ form.sqlQuery.vars.id }}');
-    if (!textarea) {
-        console.error("Critical: SQL Editor textarea not found!");
-        return;
-    }
-
-    selectOutput();
-    // Function declarations are hoisted, making them available here
-    window.editor = CodeMirror.fromTextArea(textarea, {
-        mode: 'text/x-sql',
-        theme: 'monokai',
-        lineNumbers: true,
-        autofocus: true,
-        extraKeys: {
-            'Ctrl-Space': 'autocomplete',
-            'Ctrl-Enter': runPreview
-        },
-        lineWrapping: true,
-    });
-    window.editor.setSize('100%', '200px');
-
-    // Sync editor ke textarea sebelum submit
-    document.getElementById('reportForm').addEventListener('submit', function() {
-        window.editor.save();
-    });
-
-    // ===== Database Explorer =====
-    let dbStructure = [];
-    console.log("Fetching DB Structure from:", '{{ path('report_builder_db_structure') }}');
-    fetch('{{ path('report_builder_db_structure') }}')
-        .then(r => {
-            if (!r.ok) throw new Error('HTTP error ' + r.status);
-            return r.json();
-        })
-        .then(data => {
-            console.log("DB Structure data received:", data);
-            dbStructure = data.tables || [];
-            renderDbTree(dbStructure);
-        })
-        .catch((err) => {
-            console.error("Failed to load DB Structure:", err);
-            document.getElementById('db-tree').innerHTML = '<div class="db-loader text-danger">Failed load database structure: ' + err.message + '</div>';
-        });
-
-    function renderDbTree(tables) {
-        const tree = document.getElementById('db-tree');
-        if (!tree) return;
-        if (!tables.length) {
-            tree.innerHTML = '<div class="db-loader">table not found.</div>';
+    $(function() {
+        // ===== CodeMirror SQL Editor =====
+        const textarea = document.getElementById('{{ form.sqlQuery.vars.id }}');
+        if (!textarea) {
+            console.error("Critical: SQL Editor textarea not found!");
             return;
         }
-        tree.innerHTML = tables.map(table => `
-            <div class="table-item" data-table="${table.name}">
-                <div class="table-item-header" onclick="toggleTable(this)">
-                    <i class="fa fa-chevron-right toggle-icon"></i>
-                    <i class="fa ${table.table_type === 'VIEW' ? 'fa-eye' : 'fa-table'}" style="color:${table.table_type === 'VIEW' ? '#ff9800' : '#81c784'};font-size:12px"></i>
-                    <span>${table.name}</span>
-                    <small style="color:#455a64;margin-left:auto">${table.columns.length}</small>
-                </div>
-                <div class="column-list">
-                    ${table.columns.map(col => `
-                        <div class="column-item" onclick="insertColumn('${table.name}', '${col.name}', this)" title="Klik untuk insert ke editor">
-                            <span>${col.name}</span>
-                            <div>
-                                <span class="column-type">${col.type}</span>
-                                <span class="insert-btn ms-1">↵</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
-    }
 
-    function toggleTable(header) {
-        const item = header.closest('.table-item');
-        item.classList.toggle('open');
-    }
-
-    function insertColumn(table, column, el) {
-        if (!window.editor) return;
-        const cursor = window.editor.getCursor();
-        window.editor.replaceRange(column, cursor);
-        window.editor.focus();
-    }
-
-    // ===== Search DB =====
-    const dbSearch = document.getElementById('dbSearch');
-    if (dbSearch) {
-        dbSearch.addEventListener('input', function() {
-            const kw = this.value.toLowerCase();
-            const filtered = dbStructure.filter(t => t.name.toLowerCase().includes(kw));
-            renderDbTree(filtered);
+        selectOutput();
+        // Function declarations are hoisted, making them available here
+        window.editor = CodeMirror.fromTextArea(textarea, {
+            mode: 'text/x-sql',
+            theme: 'monokai',
+            lineNumbers: true,
+            autofocus: true,
+            extraKeys: {
+                'Ctrl-Space': 'autocomplete',
+                'Ctrl-Enter': runPreview
+            },
+            lineWrapping: true,
         });
-    }
+        window.editor.setSize('100%', '200px');
 
-    // ===== Preview =====
-    let previewChart = null;
+        // Sync editor ke textarea sebelum submit
+        document.getElementById('reportForm').addEventListener('submit', function() {
+            window.editor.save();
+        });
 
-    function runPreview() {
-        if (!window.editor) return;
-        const sql = window.editor.getValue();
-        const params = document.getElementById('{{ form.queryParams.vars.id }}')?.value || '[]';
+        // ===== Database Explorer =====
+        let dbStructure = [];
+        console.log("Fetching DB Structure from:", '{{ path('report_builder_db_structure') }}');
+        fetch('{{ path('report_builder_db_structure') }}')
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP error ' + r.status);
+                return r.json();
+            })
+            .then(data => {
+                console.log("DB Structure data received:", data);
+                dbStructure = data.tables || [];
+                renderDbTree(dbStructure);
+            })
+            .catch((err) => {
+                console.error("Failed to load DB Structure:", err);
+                document.getElementById('db-tree').innerHTML = '<div class="db-loader text-danger">Failed load database structure: ' + err.message + '</div>';
+            });
 
-        updateStatus('run', 'Run query...');
-        document.getElementById('previewSection').innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-2x text-primary"></i><br><small class="text-muted mt-2">processed...</small></div>';
-
-        fetch('{{ path('report_builder_preview') }}', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-            body: new URLSearchParams({sql: sql, params: params})
-        })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('previewSection').style = "min-height: 20rem";
-            if (!data.success) {
-                updateStatus('err', 'Error');
-                document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3"><i class="fa fa-exclamation-triangle me-2"></i>${data.message}</div>`;
+        function renderDbTree(tables) {
+            const tree = document.getElementById('db-tree');
+            if (!tree) return;
+            if (!tables.length) {
+                tree.innerHTML = '<div class="db-loader">table not found.</div>';
                 return;
             }
-            updateStatus('ok', `${data.total} baris`);
-            document.getElementById('previewCount').style.display = 'inline';
-            document.getElementById('previewCount').textContent = data.total + ' baris';
-
-            // Render column badges
-            document.getElementById('columnBadges').innerHTML = data.columns.map(col =>
-                `<span class="column-badge" onclick="fillColumn('${col}')"><i class="fa fa-columns"></i>${col}</span>`
-            ).join('');
-
-            renderPreview(data.columns, data.data);
-        })
-        .catch(err => {
-            updateStatus('err', 'Failed');
-            document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3">Connection error: ${err.message}</div>`;
-        });
-    }
-
-    function fillColumn(colName) {
-        const xInput = document.getElementById('{{ form.chartXColumn.vars.id }}');
-        const yInput = document.getElementById('{{ form.chartYColumn.vars.id }}');
-        if (xInput && !xInput.value) { xInput.value = colName; return; }
-        if (yInput && !yInput.value) { yInput.value = colName; return; }
-    }
-
-    function renderPreview(columns, data) {
-        const outputType = document.getElementById('{{ form.outputType.vars.id }}').value;
-        let html = '';
-
-        if (outputType === 'table' || !outputType) {
-            html = `<div class="preview-table-wrap"><table class="table table-sm table-hover preview-table">
-                <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
-                <tbody>${data.slice(0, 50).map(row =>
-                    `<tr>${columns.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`
-                ).join('')}</tbody>
-            </table></div>`;
-            if (data.length > 50) html += `<small class="text-muted ms-2">Show 50 from ${data.length} row</small>`;
-            document.getElementById('previewSection').innerHTML = html;
-        } else {
-            html = `<div id="preview-chart"></div>`;
-            document.getElementById('previewSection').innerHTML = html;
-            const xCol = document.getElementById('{{ form.chartXColumn.vars.id }}').value || columns[0];
-            const yCol = document.getElementById('{{ form.chartYColumn.vars.id }}').value || columns[1];
-            const xData = data.map(r => r[xCol]);
-            const yData = data.map(r => parseFloat(r[yCol] || 0));
-            if (previewChart) previewChart.dispose();
-            previewChart = echarts.init(document.getElementById('preview-chart'));
-            previewChart.setOption(buildChartOption(outputType, xData, yData, yCol));
+            tree.innerHTML = tables.map(table => `
+                <div class="table-item" data-table="${table.name}">
+                    <div class="table-item-header" onclick="toggleTable(this)">
+                        <i class="fa fa-chevron-right toggle-icon"></i>
+                        <i class="fa ${table.table_type === 'VIEW' ? 'fa-eye' : 'fa-table'}" style="color:${table.table_type === 'VIEW' ? '#ff9800' : '#81c784'};font-size:12px"></i>
+                        <span>${table.name}</span>
+                        <small style="color:#455a64;margin-left:auto">${table.columns.length}</small>
+                    </div>
+                    <div class="column-list">
+                        ${table.columns.map(col => `
+                            <div class="column-item" onclick="insertColumn('${table.name}', '${col.name}', this)" title="Klik untuk insert ke editor">
+                                <span>${col.name}</span>
+                                <div>
+                                    <span class="column-type">${col.type}</span>
+                                    <span class="insert-btn ms-1">↵</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
         }
-    }
 
-    function buildChartOption(type, xData, yData, yLabel) {
-        if (type === 'pie') {
+        function toggleTable(header) {
+            const item = header.closest('.table-item');
+            item.classList.toggle('open');
+        }
+
+        function insertColumn(table, column, el) {
+            if (!window.editor) return;
+            const cursor = window.editor.getCursor();
+            window.editor.replaceRange(column, cursor);
+            window.editor.focus();
+        }
+
+        // ===== Search DB =====
+        const dbSearch = document.getElementById('dbSearch');
+        if (dbSearch) {
+            dbSearch.addEventListener('input', function() {
+                const kw = this.value.toLowerCase();
+                const filtered = dbStructure.filter(t => t.name.toLowerCase().includes(kw));
+                renderDbTree(filtered);
+            });
+        }
+
+        // ===== Preview =====
+        let previewChart = null;
+
+        function runPreview() {
+            if (!window.editor) return;
+            const sql = window.editor.getValue();
+            const params = document.getElementById('{{ form.queryParams.vars.id }}')?.value || '[]';
+
+            updateStatus('run', 'Run query...');
+            document.getElementById('previewSection').innerHTML = '<div class="text-center py-5"><i class="fa fa-spinner fa-spin fa-2x text-primary"></i><br><small class="text-muted mt-2">processed...</small></div>';
+
+            fetch('{{ path('report_builder_preview') }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                body: new URLSearchParams({sql: sql, params: params})
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('previewSection').style = "min-height: 20rem";
+                if (!data.success) {
+                    updateStatus('err', 'Error');
+                    document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3"><i class="fa fa-exclamation-triangle me-2"></i>${data.message}</div>`;
+                    return;
+                }
+                updateStatus('ok', `${data.total} baris`);
+                document.getElementById('previewCount').style.display = 'inline';
+                document.getElementById('previewCount').textContent = data.total + ' baris';
+
+                // Render column badges
+                document.getElementById('columnBadges').innerHTML = data.columns.map(col =>
+                    `<span class="column-badge" onclick="fillColumn('${col}')"><i class="fa fa-columns"></i>${col}</span>`
+                ).join('');
+
+                renderPreview(data.columns, data.data);
+            })
+            .catch(err => {
+                updateStatus('err', 'Failed');
+                document.getElementById('previewSection').innerHTML = `<div class="alert alert-danger m-3">Connection error: ${err.message}</div>`;
+            });
+        }
+
+        function fillColumn(colName) {
+            const xInput = document.getElementById('{{ form.chartXColumn.vars.id }}');
+            const yInput = document.getElementById('{{ form.chartYColumn.vars.id }}');
+            if (xInput && !xInput.value) { xInput.value = colName; return; }
+            if (yInput && !yInput.value) { yInput.value = colName; return; }
+        }
+
+        function renderPreview(columns, data) {
+            const outputType = document.getElementById('{{ form.outputType.vars.id }}').value;
+            let html = '';
+
+            if (outputType === 'table' || !outputType) {
+                html = `<div class="preview-table-wrap"><table class="table table-sm table-hover preview-table">
+                    <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                    <tbody>${data.slice(0, 50).map(row =>
+                        `<tr>${columns.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`
+                    ).join('')}</tbody>
+                </table></div>`;
+                if (data.length > 50) html += `<small class="text-muted ms-2">Show 50 from ${data.length} row</small>`;
+                document.getElementById('previewSection').innerHTML = html;
+            } else {
+                html = `<div id="preview-chart"></div>`;
+                document.getElementById('previewSection').innerHTML = html;
+                const xCol = document.getElementById('{{ form.chartXColumn.vars.id }}').value || columns[0];
+                const yCol = document.getElementById('{{ form.chartYColumn.vars.id }}').value || columns[1];
+                const xData = data.map(r => r[xCol]);
+                const yData = data.map(r => parseFloat(r[yCol] || 0));
+                if (previewChart) previewChart.dispose();
+                previewChart = echarts.init(document.getElementById('preview-chart'));
+                previewChart.setOption(buildChartOption(outputType, xData, yData, yCol));
+            }
+        }
+
+        function buildChartOption(type, xData, yData, yLabel) {
+            if (type === 'pie') {
+                return {
+                    tooltip: { trigger: 'item' },
+                    series: [{ type: 'pie', radius: ['40%','70%'], data: xData.map((x,i) => ({name:x, value:yData[i]})) }]
+                };
+            }
             return {
-                tooltip: { trigger: 'item' },
-                series: [{ type: 'pie', radius: ['40%','70%'], data: xData.map((x,i) => ({name:x, value:yData[i]})) }]
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: xData, axisLabel: { rotate: 30 } },
+                yAxis: { type: 'value' },
+                series: [{ type: type, data: yData, name: yLabel, smooth: true }]
             };
         }
-        return {
-            tooltip: { trigger: 'axis' },
-            xAxis: { type: 'category', data: xData, axisLabel: { rotate: 30 } },
-            yAxis: { type: 'value' },
-            series: [{ type: type, data: yData, name: yLabel, smooth: true }]
-        };
-    }
 
-    function updateStatus(state, text) {
-        const dot = document.getElementById('statusDot');
-        if (dot) dot.className = 'status-dot status-' + state;
-        const statusText = document.getElementById('statusText');
-        if (statusText) statusText.textContent = text;
-    }
+        function updateStatus(state, text) {
+            const dot = document.getElementById('statusDot');
+            if (dot) dot.className = 'status-dot status-' + state;
+            const statusText = document.getElementById('statusText');
+            if (statusText) statusText.textContent = text;
+        }
 
-    // Assign to window for global access (onclick in HTML)
-    window.runPreview = runPreview;
-    window.toggleTable = toggleTable;
-    window.insertColumn = insertColumn;
-    window.fillColumn = fillColumn;
+        // Assign to window for global access (onclick in HTML)
+        window.runPreview = runPreview;
+        window.toggleTable = toggleTable;
+        window.insertColumn = insertColumn;
+        window.fillColumn = fillColumn;
 
-    const btnPreviews = document.getElementsByClassName('btnPreview');
-    btnPreviews.forEach(btn => btn.addEventListener('click', runPreview));
-    // Auto-resize preview chart on window resize
-    window.addEventListener('resize', () => { if (previewChart) previewChart.resize(); });
-});
+        const btnPreviews = document.getElementsByClassName('btnPreview');
+        btnPreviews.forEach(btn => btn.addEventListener('click', runPreview));
+        // Auto-resize preview chart on window resize
+        window.addEventListener('resize', () => { if (previewChart) previewChart.resize(); });
+    });
 </script>
 {% endblock %}

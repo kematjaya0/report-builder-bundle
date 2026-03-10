@@ -1,50 +1,4 @@
-{% extends 'backend/base.html.twig' %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        .stat-card {
-            border-radius: 16px;
-            padding: 1.5rem;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
-        .stat-card .stat-icon { font-size: 3rem; opacity: 0.25; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
-        .stat-card .stat-number { font-size: 2.5rem; font-weight: 700; }
-        .stat-card .stat-label { font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .stat-active { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-        .stat-inactive { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .table-rbuilder { border-collapse: separate; border-spacing: 0; }
-        .table-rbuilder thead th {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff; font-weight: 600; border: none; padding: 14px 16px;
-        }
-        .table-rbuilder thead th:first-child { border-radius: 8px 0 0 0; }
-        .table-rbuilder thead th:last-child { border-radius: 0 8px 0 0; }
-        .table-rbuilder tbody tr { transition: background 0.2s ease; }
-        .table-rbuilder tbody tr:hover { background: rgba(102, 126, 234, 0.06); }
-        .table-rbuilder tbody td { padding: 14px 16px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
-        .badge-output { font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .badge-table { background: #e3f2fd; color: #1976d2; }
-        .badge-bar { background: #e8f5e9; color: #388e3c; }
-        .badge-line { background: #fff3e0; color: #f57c00; }
-        .badge-pie { background: #fce4ec; color: #c2185b; }
-        .badge-scatter { background: #f3e5f5; color: #7b1fa2; }
-        .action-btn { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border: none; }
-        .action-btn:hover { transform: scale(1.1); }
-        .query-preview { max-width: 300px; font-family: monospace; font-size: 0.78rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .search-box { border-radius: 10px; border: 2px solid #e0e0e0; padding: 10px 16px; transition: border-color 0.2s; }
-        .search-box:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); outline: none; }
-        .btn-create { background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 10px; padding: 10px 24px; font-weight: 600; color: #fff; transition: all 0.3s; }
-        .btn-create:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); color: #fff; }
-        .empty-state { text-align: center; padding: 60px 20px; }
-        .empty-state i { font-size: 4rem; color: #ddd; }
-    </style>
-{% endblock %}
+{% extends '@ReportBuilder/base.html.twig' %}
 
 {% block body %}
 <div class="container-fluid">
@@ -117,7 +71,7 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                                         style="width:36px;height:36px;background:linear-gradient(135deg,#667eea,#764ba2)">
+                                         style="width:36px;height:36px;background:var(--gradient-primary)">
                                         <i class="{{ query.icon }} text-white" style="font-size:14px"></i>
                                     </div>
                                     <div>
