@@ -21,7 +21,7 @@ class ReportMenuExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('report_saved_menus', $this->getReportMenus()),
+            new TwigFunction('report_saved_menus', [$this, 'getReportMenus']),
             new TwigFunction("render_chart_js", [$this, 'renderChartJS'], ['is_safe' => ['html']]),
             new TwigFunction("render_report_builder_css", [$this, 'renderCSS'], ['is_safe' => ['html']]),
             new TwigFunction("render_report_builder_js", [$this, 'renderJS'], ['is_safe' => ['html']])

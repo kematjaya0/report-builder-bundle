@@ -1,14 +1,14 @@
-- report builder for symfony 7
+# Report Builder for Symfony 7
 - installation
-  ```
+  ```bash
   composer require kematjaya/report-builder-bundle
   ```
 - add to bundles.php
-  ```
+  ```php
   Kematjaya\ReportBuilderBundle\ReportBuilderBundle::class => ['all' => true]
   ```
 - add to routes.yaml
-  ```
+  ```yaml
   report_builder:
     resource: '@ReportBuilderBundle/Resources/config/routes.yaml'
   ```
@@ -24,7 +24,11 @@
   - report_builder_export_csv
   ```
 - update database schema
-  ```
+  ```bash
   php bin/console doctrine:schema:update --force
   ```
 - access with url: {{ base-url }} /report-builder.html
+- show report as menu:
+  ```html
+  report_saved_menus() // in twig file
+  ```
