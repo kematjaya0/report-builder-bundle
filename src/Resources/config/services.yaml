@@ -10,6 +10,9 @@ services:
     Kematjaya\ReportBuilderBundle\Manager\ReportBuilderManagerInterface:
         class: Kematjaya\ReportBuilderBundle\Manager\ReportBuilderManager
 
+    Kematjaya\ReportBuilderBundle\Repository\ReportQueryRepository: ~
+    Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController: ~
+    Kematjaya\ReportBuilderBundle\Form\ReportQueryType: ~
     Kematjaya\ReportBuilderBundle\Twig\ReportMenuExtension:
-        autowire: true
-        autoconfigure: true
+        class: Kematjaya\ReportBuilderBundle\Twig\ReportMenuExtension
+        tags: ['twig.extension']

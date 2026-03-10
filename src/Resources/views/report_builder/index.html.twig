@@ -1,5 +1,10 @@
 {% extends '@ReportBuilder/base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ render_report_builder_css() }}
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid">
     <!-- Breadcrumb -->
@@ -144,14 +149,14 @@
 {% endblock %}
 
 {% block javascripts %}
-{{ parent() }}
-<script>
-document.getElementById('searchInput').addEventListener('input', function() {
-    const keyword = this.value.toLowerCase();
-    document.querySelectorAll('#tableBody tr').forEach(function(row) {
-        const name = row.getAttribute('data-name') || '';
-        row.style.display = name.includes(keyword) ? '' : 'none';
+    {{ parent() }}
+    <script>
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const keyword = this.value.toLowerCase();
+        document.querySelectorAll('#tableBody tr').forEach(function(row) {
+            const name = row.getAttribute('data-name') || '';
+            row.style.display = name.includes(keyword) ? '' : 'none';
+        });
     });
-});
-</script>
+    </script>
 {% endblock %}

@@ -14,8 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/report-builder', name: 'report_builder_')]
-#[IsGranted('ROLE_ADMINISTRATOR')]
 class ReportBuilderController extends AbstractController
 {
     public function __construct(
@@ -25,7 +23,6 @@ class ReportBuilderController extends AbstractController
     ) {
     }
 
-    #[Route('.html', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
         $queries = $this->repository->findAll();
@@ -39,7 +36,6 @@ class ReportBuilderController extends AbstractController
         ]);
     }
 
-    #[Route('/new.html', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
 
@@ -72,7 +68,6 @@ class ReportBuilderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit.html', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, ReportQuery $reportQuery): Response
     {
 
@@ -94,7 +89,7 @@ class ReportBuilderController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete.html', name: 'delete', methods: ['POST'])]
+
     public function delete(Request $request, ReportQuery $reportQuery): Response
     {
         if ($this->isCsrfTokenValid('delete' . $reportQuery->getId(), $request->request->get('_token'))) {
@@ -109,7 +104,7 @@ class ReportBuilderController extends AbstractController
     /**
      * AJAX: Preview/eksekusi query SQL
      */
-    #[Route('/preview.html', name: 'preview', methods: ['POST'])]
+
     public function preview(Request $request): JsonResponse
     {
         $sql = $request->request->get('sql', '');
@@ -134,15 +129,13 @@ class ReportBuilderController extends AbstractController
         return $this->json($result);
     }
 
-    #[Route('/db-structure.html', name: 'db_structure', methods: ['GET'])]
+
     public function dbStructure(): JsonResponse
     {
         $structure = $this->manager->getDatabaseStructure();
         return $this->json(['tables' => $structure]);
     }
 
-    #[Route('/{slug}/view.html', name: 'view', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
     public function view(Request $request, string $slug): Response
     {
         $reportQuery = $this->repository->findBySlug($slug);
@@ -200,8 +193,7 @@ class ReportBuilderController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/export.csv', name: 'export_csv', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
+
     public function exportCsv(Request $request, string $slug): Response
     {
         $reportQuery = $this->repository->findBySlug($slug);

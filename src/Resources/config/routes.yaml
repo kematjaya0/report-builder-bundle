@@ -1,4 +1,39 @@
-report_builder:
-    resource: '../../src/Controller/'
-    type: attribute
-    prefix: '/'
+report_builder_index:
+    path: /report-builder.html
+    methods: GET
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::index
+
+report_builder_new:
+    path: /report-builder/new.html
+    methods: ['GET', 'POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::new
+
+report_builder_edit:
+    path: /report-builder/{id}/edit.html
+    methods: ['GET', 'POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::edit
+
+report_builder_delete:
+    path: /report-builder/{id}/delete.html
+    methods: ['POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::delete
+
+report_builder_preview:
+    path: /report-builder/preview.html
+    methods: ['POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::preview
+
+report_builder_db_structure:
+    path: /report-builder/db-structure.html
+    methods: ['GET']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::dbStructure
+
+report_builder_view:
+    path: /report-builder/{slug}/view.html
+    methods: ['GET', 'POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::view
+
+report_builder_export_csv:
+    path: /report-builder/{slug}/export.csv
+    methods: ['GET', 'POST']
+    controller: Kematjaya\ReportBuilderBundle\Controller\ReportBuilderController::exportCsv
