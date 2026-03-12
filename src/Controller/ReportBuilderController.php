@@ -38,7 +38,7 @@ class ReportBuilderController extends AbstractController
 
     public function new(Request $request): Response
     {
-
+        $request->getSession()->set("secretKey", $this->generateSecretKey());
         $reportQuery = new ReportQuery();
         $form = $this->createForm(ReportQueryType::class, $reportQuery, [
             'action' => $this->generateUrl('report_builder_new'),
@@ -57,7 +57,7 @@ class ReportBuilderController extends AbstractController
             $this->em->persist($reportQuery);
             $this->em->flush();
 
-            $this->addFlash('success', 'Query laporan berhasil disimpan!');
+            $this->addFlash('success', 'Query saved!');
             return $this->redirectToRoute('report_builder_index');
         }
 
@@ -65,12 +65,18 @@ class ReportBuilderController extends AbstractController
             'form' => $form->createView(),
             'report_query' => $reportQuery,
             'is_edit' => false,
+            "secretKey" => $request->getSession()->get("secretKey")
         ]);
+    }
+
+    protected function generateSecretKey(): string
+    {
+        return bin2hex(random_bytes(16));
     }
 
     public function edit(Request $request, ReportQuery $reportQuery): Response
     {
-
+        $request->getSession()->set("secretKey", $this->generateSecretKey());
         $form = $this->createForm(ReportQueryType::class, $reportQuery, [
             'action' => $this->generateUrl('report_builder_edit', ['id' => $reportQuery->getId()]),
         ]);
@@ -78,14 +84,15 @@ class ReportBuilderController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->em->flush();
-            $this->addFlash('success', 'Query laporan berhasil diperbarui!');
+            $this->addFlash('success', 'Query updated!');
             return $this->redirectToRoute('report_builder_index');
         }
 
         return $this->render('@ReportBuilder/report_builder/form.html.twig', [
             'form' => $form->createView(),
             'report_query' => $reportQuery,
-            'is_edit' => true
+            'is_edit' => true,
+            "secretKey" => $request->getSession()->get("secretKey")
         ]);
     }
 
@@ -108,7 +115,21 @@ class ReportBuilderController extends AbstractController
     public function preview(Request $request): JsonResponse
     {
         $sql = $request->request->get('sql', '');
-        $paramsJson = $request->request->get('params', '[]');
+        $iv = base64_decode($request->request->get('iv', ''));
+        $secretKey = $request->getSession()->get("secretKey");
+        $paramsJson = $request->request->get('params', '');
+        $decryptData = function ($encryptedText) use ($secretKey, $iv) {
+
+            return openssl_decrypt(
+                $encryptedText,
+                'aes-256-cbc',
+                $secretKey,
+                0,
+                $iv
+            );
+        };
+        $sql = $decryptData($sql);
+        $paramsJson = $decryptData($paramsJson);
 
         // Validasi keamanan
         $validation = $this->manager->validateQuery($sql);
@@ -118,7 +139,7 @@ class ReportBuilderController extends AbstractController
 
         // Resolusi parameter
         try {
-            $queryParams = json_decode($paramsJson, true, 512, JSON_THROW_ON_ERROR) ?? [];
+            $queryParams = json_decode(json_decode($paramsJson), true, 512, JSON_THROW_ON_ERROR) ?? [];
         } catch (\JsonException) {
             $queryParams = [];
         }

@@ -232,6 +232,18 @@
 
             // ===== Preview =====
             let previewChart = null;
+            const key = CryptoJS.enc.Utf8.parse("{{ secretKey }}");
+            const iv = CryptoJS.lib.WordArray.random(16);
+
+            function encryptData(text) {
+                const encrypted = CryptoJS.AES.encrypt(text, key, {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+
+                return encrypted.toString();
+            }
 
             function runPreview() {
                 if (!window.editor) return;
@@ -244,7 +256,7 @@
                 fetch('{{ path('report_builder_preview') }}', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-                    body: new URLSearchParams({sql: sql, params: params})
+                    body: new URLSearchParams({sql: encryptData(sql), params: encryptData(JSON.stringify(params)), iv: CryptoJS.enc.Base64.stringify(iv) })
                 })
                     .then(r => r.json())
                     .then(data => {
