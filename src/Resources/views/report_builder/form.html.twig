@@ -16,7 +16,7 @@
             </div>
         </div>
 
-        {{ form_start(form, {attr: {id: 'reportForm', novalidate: 'novalidate'}}) }}
+        {{ form_start(form, {attr: {id: 'reportForm', novalidate: 'novalidate', onsubmit: 'return postForm(this)'}}) }}
         <div class="form-layout shadow-sm rounded-3 overflow-hidden mb-4">
             <!-- DB Explorer (Kiri) -->
             <div class="db-explorer">
@@ -42,7 +42,7 @@
                         <button type="button" class="btn btn-run btn-sm btnPreview">
                             <i class="fa fa-play me-1"></i> Run Preview
                         </button>
-                        <button type="button" class="btn btn-save btn-sm" onclick="document.getElementById('reportForm').submit()">
+                        <button type="submit" class="btn btn-save btn-sm">
                             <i class="fa fa-save me-1"></i> Save Query
                         </button>
                         <a href="{{ path("report_builder_index") }}" class="btn btn-sm btn-primary-gradien">
@@ -87,7 +87,7 @@
                         <button type="button" class="btn btn-run btn-sm btnPreview">
                             <i class="fa fa-play me-1"></i> Run Preview
                         </button>
-                        <button type="button" class="btn btn-save btn-sm" onclick="document.getElementById('reportForm').submit()">
+                        <button type="submit" class="btn btn-save btn-sm">
                             <i class="fa fa-save me-1"></i> Save Query
                         </button>
                         <a href="{{ path("report_builder_index") }}" class="btn btn-sm btn-primary-gradien">
@@ -122,6 +122,19 @@
     {{ render_report_builder_js() }}
     {{ render_chart_js() }}
     <script>
+        const key = CryptoJS.enc.Utf8.parse("{{ secretKey }}");
+        const iv = CryptoJS.lib.WordArray.random(16);
+
+        function encryptData(text) {
+            const encrypted = CryptoJS.AES.encrypt(text, key, {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+
+            return encrypted.toString();
+        }
+
         function selectOutput() {
             const outputType = document.getElementById('report_query_outputType').value;
             if ('table' === outputType) {
@@ -155,10 +168,21 @@
             });
             window.editor.setSize('100%', '200px');
 
-            // Sync editor ke textarea sebelum submit
-            document.getElementById('reportForm').addEventListener('submit', function() {
+            function postForm(form) {
                 window.editor.save();
-            });
+                const formData = new FormData(form);
+                formData.set('report_query[{{ form.sqlQuery.vars.name }}]', encryptData(document.getElementById('{{ form.sqlQuery.vars.id }}').value));
+                formData.set('iv', CryptoJS.enc.Base64.stringify(iv));
+
+                fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                })
+                    .then(() => window.location.href = '{{ path('report_builder_index') }}')
+                    .catch(e => console.error(e));
+
+                return false;
+            }
 
             // ===== Database Explorer =====
             let dbStructure = [];
@@ -232,18 +256,6 @@
 
             // ===== Preview =====
             let previewChart = null;
-            const key = CryptoJS.enc.Utf8.parse("{{ secretKey }}");
-            const iv = CryptoJS.lib.WordArray.random(16);
-
-            function encryptData(text) {
-                const encrypted = CryptoJS.AES.encrypt(text, key, {
-                    iv: iv,
-                    mode: CryptoJS.mode.CBC,
-                    padding: CryptoJS.pad.Pkcs7
-                });
-
-                return encrypted.toString();
-            }
 
             function runPreview() {
                 if (!window.editor) return;

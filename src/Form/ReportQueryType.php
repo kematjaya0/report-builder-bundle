@@ -10,13 +10,14 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ReportQueryType extends AbstractType
 {
-    public function __construct(private RoleHierarchyInterface $roleHierarchy)
+    public function __construct(private RoleHierarchyInterface $roleHierarchy, private RequestStack $requestStack)
     {
     }
 
@@ -126,6 +127,24 @@ class ReportQueryType extends AbstractType
             ]
         ]);
 
+        $builder->get('sqlQuery')->addViewTransformer(new CallbackTransformer(function ($value) {
+            if (!$value) {
+                return null;
+            }
+
+            return $value;
+        }, function ($value) {
+
+            if (!$value) {
+                return null;
+            }
+
+            $session = $this->requestStack->getSession();
+            $iv = base64_decode($this->requestStack->getMainRequest()->request->get("iv"));
+
+            $decrypt = openssl_decrypt($value, 'aes-256-cbc', $session->get("secretKey"), 0, $iv);
+            return null !== $decrypt ? $decrypt : '';
+        }));
         $builder->get("queryParams")->addViewTransformer(
             new CallbackTransformer(function ($value) {
                 if (!$value) {
@@ -133,13 +152,14 @@ class ReportQueryType extends AbstractType
                 }
 
                 return json_encode($value);
-                }, function ($value) {
-                    if (!$value) {
-                        return [];
-                    }
+            }, function ($value) {
 
-                    return json_decode($value, true);
-                }),
+                if (!$value) {
+                    return [];
+                }
+
+                return json_decode($value, true);
+            })
         );
     }
 

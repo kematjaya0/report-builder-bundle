@@ -38,7 +38,6 @@ class ReportBuilderController extends AbstractController
 
     public function new(Request $request): Response
     {
-        $request->getSession()->set("secretKey", $this->generateSecretKey());
         $reportQuery = new ReportQuery();
         $form = $this->createForm(ReportQueryType::class, $reportQuery, [
             'action' => $this->generateUrl('report_builder_new'),
@@ -61,6 +60,8 @@ class ReportBuilderController extends AbstractController
             return $this->redirectToRoute('report_builder_index');
         }
 
+        $request->getSession()->set("secretKey", $this->generateSecretKey());
+
         return $this->render('@ReportBuilder/report_builder/form.html.twig', [
             'form' => $form->createView(),
             'report_query' => $reportQuery,
@@ -76,7 +77,6 @@ class ReportBuilderController extends AbstractController
 
     public function edit(Request $request, ReportQuery $reportQuery): Response
     {
-        $request->getSession()->set("secretKey", $this->generateSecretKey());
         $form = $this->createForm(ReportQueryType::class, $reportQuery, [
             'action' => $this->generateUrl('report_builder_edit', ['id' => $reportQuery->getId()]),
         ]);
@@ -87,6 +87,8 @@ class ReportBuilderController extends AbstractController
             $this->addFlash('success', 'Query updated!');
             return $this->redirectToRoute('report_builder_index');
         }
+
+        $request->getSession()->set("secretKey", $this->generateSecretKey());
 
         return $this->render('@ReportBuilder/report_builder/form.html.twig', [
             'form' => $form->createView(),
